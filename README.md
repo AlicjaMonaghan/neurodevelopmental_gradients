@@ -13,5 +13,6 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 
 ## Code 
 * [Deriving group and individual level gradients][code1] - This describes conducting diffusion-map embedding to derive group-level and individual-level structural and functional gradients for CALM and NKI. Since both CALM and NKI are managed-access datasets, we cannot provide raw connectomes.
-[code1]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/deriving_group_and_individual_gradients_v2.py
 
+
+[code1]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/deriving_group_and_individual_gradients_v2.py
