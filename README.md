@@ -12,4 +12,7 @@ This work is licensed under a
 Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structural and Functional Manifolds'
 
 ## Code 
-* 
+* [Figure 1]
+
+[Figure 1]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/Figure_1_open.access.R
+
