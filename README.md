@@ -17,8 +17,11 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 * [Figure 1][code3] - Code for plotting group-level DME eigenvectors on the cortical surface, exploring variability in the percentage variance accounted for by the first structural and functional components, and examining individual differences in variance explained.
 * [Stability of gradients and relation to graph theory metrics][code4] - We explore the stability of the ordering of primary structural and functional gradients using a two-way ANOVA of ranked coefficients of variation. This code also computes global graph theory metrics to examine their link with mean manifold eccentricity.
 * [Figure 2][code5] - Plots the relationship between mean manifold eccentricity and global graph theory metrics.
-* [Generalised additive mixed models (GAMM)][code6]: GAMM functions. Significance testing of interaction terms in each GAMM was implemented using [Bart Larsen's][code7] GAMM repository. Also contains plotting functions for partial normalised age effects on developmental of structural and functional manifolds.
-* 
+* [Generalised additive mixed models (GAMM)][code6] - GAMM functions. Significance testing of interaction terms in each GAMM was implemented using [Bart Larsen's][code7] GAMM repository. Also contains plotting functions for partial normalised age effects on developmental of structural and functional manifolds.
+* [Structural and functional GAMMs][code8] - GAMMs to assess developmental effects on structural and functional manifold eccentricity, adjusting for covariates.
+* [Computing structure-function coupling and deriving dimensions of psychopathology and cognition][code9]
+* [Individual differences in and developmental trajectories of structure-function coupling][code10] - Conducts GAMMs to test developmental effects on structure-function coupling. Visualises individual differences in structure-function coupling as a function of data set and network.
+* [Linking psychopathology/cognition with structure-function coupling][code11] - Conducts GAMMs to test developmental relationship between 3 dimensions of psychopathology and 2 of cognition, with structure-function coupling. GAMM coefficients are visualised in chord plots.
 
 [code1]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/deriving_group_and_individual_gradients_v2.py
 [code2]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/dme_and_metadata.R
@@ -27,6 +30,10 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 [code5]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/Figure_2_open.access.R
 [code6]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/GAMM.functions.v3.R
 [code7]: https://github.com/bart-larsen/GAMM-Tutorial
+[code8]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/structural_and_functional_gamms.R
+[code9]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/structure_function_coupling_and_psychopathology.py
+[code10]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/structure_function_coupling_individual_differences.R
+[code11]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/psychopathology_cognition_dimensions_structure_function.R
 
 
 
