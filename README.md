@@ -36,7 +36,8 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 [code11]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/psychopathology_cognition_dimensions_structure_function.R
 
 ## Individual and group-level gradients
-[CALM_NKI_Group_Gradients.mat][code12]: Group-level communicability and resting state functional magnetic resonance imaging gradients.
+* [Group-level gradients for CALM and NKI][code12]
+* 
 
 [code12]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/data/calm.nki.group.gradients.mat
 
