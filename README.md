@@ -36,9 +36,19 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 [code11]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/psychopathology_cognition_dimensions_structure_function.R
 
 ## Individual and group-level gradients
-* [Group-level gradients for CALM and NKI][code12]
-* 
+* [Group-level gradients for CALM and NKI][code12] - Structural gradients are communicability values from thresholded streamline counts from probabilistic tractography, whilst functional gradients are pairwise correlated time-series from resting-state functional magnetic resonance imaging.
+* [Coefficient of variation][code13] - Nodal coefficient of variation for gradients, averaged across participants, acccording to dataset (1 = CALM, 2 = NKI) and modality (1 = structural, 2 = functional).
 
 [code12]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/data/calm.nki.group.gradients.mat
+[code13]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/data/coefficient.of.variation.csv
 
+## Phenotypic
+* [Participant-level and measure-level loadings][code14] from a principal component analysis of 6 broad cognitive (working memory, attention, exeuctive functioning etc) and 6 psychopathological (Conners III) measures.
+[code14]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/phenotypic
+
+## Generalised additive mixed models (GAMM)
+* GAMM summaries are available for the following network-level independent variables: [structural][code15], [functional][code16], and [structure-function coupling][code17].
+[code15]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/structural
+[code16]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/functional
+[code17]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/structure.function
 
