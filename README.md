@@ -44,10 +44,12 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 
 ## Phenotypic
 * [Participant-level and measure-level loadings][code14] from a principal component analysis of 6 broad cognitive (working memory, attention, exeuctive functioning etc) and 6 psychopathological (Conners III) measures.
+
 [code14]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/phenotypic
 
 ## Generalised additive mixed models (GAMM)
 * GAMM summaries are available for the following network-level independent variables: [structural][code15], [functional][code16], and [structure-function coupling][code17].
+
 [code15]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/structural
 [code16]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/functional
 [code17]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/structure.function
