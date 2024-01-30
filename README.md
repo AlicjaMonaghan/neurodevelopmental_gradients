@@ -57,3 +57,5 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 [code16]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/functional
 [code17]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/tree/main/data/structure.function
 
+## Connectome construction
+Internal scripts used to clean rsfMRI data and construct functional connectomes, as well as calculating communicability for structural connectomes. Included here for information.
