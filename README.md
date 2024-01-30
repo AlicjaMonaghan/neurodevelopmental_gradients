@@ -40,6 +40,7 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 ## Individual and group-level gradients
 * [Group-level gradients for CALM and NKI][code12] - Structural gradients are communicability values from thresholded streamline counts from probabilistic tractography, whilst functional gradients are pairwise correlated time-series from resting-state functional magnetic resonance imaging.
 * [Coefficient of variation][code13] - Nodal coefficient of variation for gradients, averaged across participants, acccording to dataset (1 = CALM, 2 = NKI) and modality (1 = structural, 2 = functional).
+* Note, whilst DME-derived gradients are provided for all datasets, the individual affinity matrices with the eigenvectors were too large to upload. 
 
 [code12]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/data/calm.nki.group.gradients.mat
 [code13]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/data/coefficient.of.variation.csv
