@@ -7,7 +7,7 @@
 # PART 1 - Importing Packages and Setting Up Work Space #
 import scipy
 from scipy.io import savemat
-from scipy.stats import spearmanr, shapiro, pearsonr
+from scipy.stats import spearmanr, pearsonr, t
 import os
 import numpy as np
 import rpy2.robjects as robjects
@@ -99,7 +99,7 @@ def run_group_dimensionality_reduction(dataset, modality, parcellation, ncomp, u
     # This is because in CALM, the first and second principal gradients explain a very similar amount of variance,
     # meaning that their order can be switched. We know this because the left and right hemispheres should be mirror
     # images of each other. We don't see this effect in the non-referred subset.
-    if dataset == 'calm' and subset == 'referred' and modality == 'sc':
+    if dataset == 'calm' and modality == 'sc':
         # Align the first component in the left hemisphere to the second component in the right
         lh_component_1 = procrustes(eigenvectors[range(0, int(nroi / 2)), 0].reshape(100, 1),
                                     eigenvectors[range(int(nroi / 2), nroi), 1].reshape(100, 1))
@@ -217,6 +217,9 @@ def run_individual_diffusion_map_embedding(dataset, modality, parcellation, ncom
     # select the correct subset (referred or non-referred).
     if dataset == 'calm':
         individual_connectomes = individual_connectomes['harmonised']
+    if dataset == 'calm' and subset == 'non-referred':
+        # Needs to be slightly differently formatted to index into the group gradient structure
+        subset = 'nonreferred'
     if dataset == 'calm' and timepoint == 'baseline':
         participant_list = individual_connectomes[timepoint][subset]['sub']
         print('For the {} subset of CALM...'.format(subset))
@@ -226,10 +229,16 @@ def run_individual_diffusion_map_embedding(dataset, modality, parcellation, ncom
           format(len(participant_list), formatted_modality_name, timepoint, dataset))
     # Initialise output arrays for the eigenvectors and variance explained for the parcellation inputted (
     # 'schaefer100x7', 'schaefer200x7', or 'brainnetome246') and components (ncomp)
-    nroi = individual_connectomes[timepoint][parcellation]['individual'].shape[1]
+    if dataset == 'calm' and timepoint == 'baseline' and subset == 'referred':
+        nroi = individual_connectomes[timepoint][subset][parcellation]['individual'].shape[1]
+    elif dataset == 'calm' and subset == 'nonreferred':
+        nroi = individual_connectomes['baseline']['nonreferred']['schaefer200x7']['individual'].shape[1]
+    else:
+        nroi = individual_connectomes[timepoint][parcellation]['individual'].shape[1]
     individual_eigenvectors = np.zeros([nroi, ncomp, len(participant_list)])
     variance_explained = np.zeros([len(participant_list), 2, ncomp])
     affinity_array = np.zeros([len(participant_list), 2, int(nroi / 2), int(nroi / 2)])
+    print('About to start looping across participants...')
     # Note that we specify two hemispheres when collecting the eigen-values because we rotate the eigen vectors to
     # ensure that both hemispheres are aligned, but cannot do this for the eigen values (which are scalar and direction-
     # invariant anyway). Loop across participants...
@@ -237,12 +246,15 @@ def run_individual_diffusion_map_embedding(dataset, modality, parcellation, ncom
         # Extract connectome for this participant, modality, time point, and data set. If we're extracting structural
         # connectomes from CALM, then we must select the first index (not noughth) of the fourth dimension, as these
         # are the communicability matrices! Further, select the correct subset for CALM (referred vs non-referred)
-        if dataset == "calm" and timepoint == 'baseline' and modality == "sc":
+        if dataset == "calm" and timepoint == 'baseline' and modality == "sc" and subset == 'referred':
             participant_connectome = \
-                individual_connectomes[timepoint][subset][parcellation]['individual'][participant_idx, :, :, 1]
+                individual_connectomes[timepoint][subset][parcellation]['individual'][participant_idx, :, :]
+        elif dataset == "calm" and subset == "nonreferred" and modality == "sc":
+            participant_connectome = \
+                individual_connectomes[subset][parcellation]['individual'][participant_idx, :, :]
         elif dataset == 'calm' and timepoint == 'followup' and modality == 'sc':
             participant_connectome = \
-                individual_connectomes[timepoint][parcellation]['individual'][participant_idx, :, :, 1]
+                individual_connectomes[timepoint][parcellation]['individual'][participant_idx, :, :]
         elif dataset == "calm" and timepoint == 'baseline' and modality == "fc":
             participant_connectome = \
                 individual_connectomes[timepoint][subset][parcellation]['individual'][participant_idx, :, :]
@@ -287,6 +299,32 @@ def run_individual_diffusion_map_embedding(dataset, modality, parcellation, ncom
         return individual_eigenvectors, variance_explained, participant_list, affinity_array
     else:
         return individual_eigenvectors, variance_explained, participant_list
+
+
+# This function implements Steiger's (1980) z-test for dependent correlations (Steiger, 1980, Tests for comparing
+# elements of a correlation matrix. Psychological Bulletin, 87(2), 245-251, https://doi.org/10.1037/0033-2909.87.2.245).
+# This is based on a script developed by Philipp Singer:
+# https://github.com/psinger/CorrelationStats/blob/master/corrstats.py
+def steiger(xy, xz, yz, n, twotailed):
+    """
+    INPUTS:
+    xy: correlation between X and Y
+    xz: correlation between X and Z
+    yz: correlation between Y and Z
+    n: number of observations used to compute correlations
+    OUTPUTS:
+    t = t-statistic assessing equality of correlation coefficients.
+    p = p-value from one or two-tailed test
+    """
+    d = xy - xz
+    determin = 1 - xy * xy - xz * xz - yz * yz + 2 * xy * xz * yz
+    av = (xy + xz) / 2
+    cube = (1 - yz) * (1 - yz) * (1 - yz)
+    t2 = d * np.sqrt((n - 1) * (1 + yz) / ((2 * (n - 1) / (n - 3)) * determin + av * av * cube))
+    p = 1 - t.cdf(abs(t2), n - 3)
+    if twotailed is True:
+        p *= 2
+    return t2, p
 
 
 # PART 3 - Deriving Group Gradients! #
@@ -349,10 +387,39 @@ schaefer200x7_metadata = scipy.io.loadmat('data/schaefer200x7_1mm_info.mat', sim
 schaefer200x7_labels = schaefer200x7_metadata['schaefer200x7_1mm_info']['name']
 # Load the group-level gradients, and conduct a spearman-rank correlation for corresponding CALM and NKI gradients.
 group_gradients = scipy.io.loadmat('data/calm.nki.group.gradients.mat')
+# Note, since NKI functional gradient 1 and CALM functional gradient 1 are strongly inversely correlated, we will
+# invert the CALM gradient for consistency. This is because the direction of the eigenvectors is arbitrary.
+group_gradients['calm']['referred'].item()[1, :, 0] = group_gradients['calm']['referred'].item()[1, :, 0] * -1
+# We also need to flip the left hemisphere of the first two structural components for CALM (i.e. reversing direction)
+# so that they're aligned with NKI. Both of these modifications don't make a difference for manifold eccentricity, as
+# this is calculated with respect to the manifold origin.
+group_gradients['calm']['referred'].item()[0, 0:100, 0] = group_gradients['calm']['referred'].item()[0, 0:100, 0] * -1
+group_gradients['calm']['referred'].item()[0, 0:100, 1] = group_gradients['calm']['referred'].item()[0, 0:100, 1] * -1
+# Do the same for the non-referred subset...
+group_gradients['calm']['non-referred'].item()[1, :, 0] = group_gradients['calm']['non-referred'].item()[1, :, 0] * -1
+group_gradients['calm']['non-referred'].item()[0, 0:100, 0] = group_gradients['calm']['non-referred'].item()[0, 0:100,
+                                                              0] * -1
+group_gradients['calm']['non-referred'].item()[0, 0:100, 1] = group_gradients['calm']['non-referred'].item()[0, 0:100,
+                                                              1] * -1
+# And save the updated version
+group_gradients = {'nki': group_gradients['nki'], 'calm':
+    {'referred': group_gradients['calm']['referred'].item(),
+     'non-referred': group_gradients['calm']['non-referred'].item()}}
+scipy.io.savemat('data/calm.nki.group.gradients.mat', group_gradients)
+# Now loop through each modality and component, and calculate correspondence between the referred CALM subset and NKI.
 for modality_idx, modality in enumerate(modalities):
     for comp in range(0, 3):
-        calm_gradient = group_gradients['calm']['referred'].item()[modality_idx, :, comp]
+        calm_gradient = group_gradients['calm']['referred'][modality_idx, :, comp]
         nki_gradient = group_gradients['nki'][modality_idx, :, comp]
+        # For each data set, report which regions are anchoring the gradient
+        calm_gradient_sorted = np.argsort(calm_gradient)
+        print("Gradient {} of {} in CALM is anchored at one end by {}, and at the other end by {}.".
+              format(comp + 1, modality, ','.join(schaefer200x7_labels[calm_gradient_sorted[0:4]]),
+                     ','.join(schaefer200x7_labels[calm_gradient_sorted[-4:]])))
+        nki_gradient_sorted = np.argsort(nki_gradient)
+        print("Gradient {} of {} in NKI is anchored at one end by {}, and at the other end by {}.".
+              format(comp + 1, modality, ','.join(schaefer200x7_labels[nki_gradient_sorted[0:4]]),
+                     ','.join(schaefer200x7_labels[nki_gradient_sorted[-4:]])))
         rho, pval = perm_sphere(calm_gradient, nki_gradient, corr_type='spearman')
         # Note that the absolute value of the correlation is considered - the sign of eigenvectors is arbitrary
         print("Spearman-rank correlation of {:}, with p-value of {:}, for {:} gradient {:} between CALM and NKI.".
@@ -366,26 +433,60 @@ for modality_idx, modality in enumerate(modalities):
         print("Regions with the largest dissimilarity between CALM and NKI included {}.".format(
             ', '.join(most_dissimilar_regions)))
 
-# PART 5 - Deriving Individual Gradients and Calculating Manifold Eccentricity #
+# PART 5 - Testing equality of group-level gradients between referred and non-referred CALM samples and NKI
+for modality_idx in range(len(modalities)):
+    for comp in range(3):
+        calm_referred_gradient = group_gradients['calm']['referred'][modality_idx, :, comp]
+        calm_nonreferred_gradient = group_gradients['calm']['non-referred'][modality_idx, :, comp]
+        nki_gradient = group_gradients['nki'][modality_idx, :, comp]
+        # Extract correlation coefficient for relationship between NKI and referred CALM
+        xy = perm_sphere(nki_gradient, calm_referred_gradient, 'spearman')[0]
+        print('Correlation between NKI and referred CALM for {} component {}: r = {}'.
+              format(modalities[modality_idx], comp + 1, round(xy, 3)))
+        # Correlation coefficient for relationship between NKI and non-referred CALM
+        xz = perm_sphere(nki_gradient, calm_nonreferred_gradient, 'spearman')[0]
+        print('Correlation between NKI and non-referred CALM for {} component {}: r = {}'.
+              format(modalities[modality_idx], comp + 1, round(xz, 3)))
+        # Correlation between referred and non-referred CALM
+        yz = perm_sphere(calm_referred_gradient, calm_nonreferred_gradient, 'spearman')[0]
+        print('Correlation between referred and non-referred CALM for {} component {}: r = {}'.
+              format(modalities[modality_idx], comp + 1, round(yz, 3)))
+        # Steieger's test (Steiger, 1980) to assess whether non-referred CALM are more aligned to NKI than referred CALM
+        # is. n is the number of nodes. A negative Z-score indicates that the non-referred group is more similar to NKI
+        # than the referred group is.
+        stat, p = steiger(xy, xz, yz, n=200, twotailed=False)
+        print('Referred CALM and NKI correlation vs non-referred CALM and NKI correlation for {} gradient,'
+              ' component {}: z = {}, p = {}'.format(modalities[modality_idx], comp + 1, round(stat, 2), round(p, 3)))
+
+# PART 6 - Deriving Individual Gradients and Calculating Manifold Eccentricity #
 parcellation = 'schaefer200x7'
+# Update datasets so that we can calculate manifold eccentricity for the non-referred subset of CALM too.
+datasets = ['nki', 'calm referred', 'calm non-referred']
 # We shall calculate manifold eccentricity for NKI and the referred CALM subset.
 for dataset_idx, dataset in enumerate(datasets):
     # Specify time points for each data set, and extract the group gradient. Specify the relevant sub sets, leaving a
     # blank subset variable for NKI.
-    if dataset == "calm":
+    if dataset == "calm referred":
+        dataset_only = "calm"
         timepoints = ["baseline", "followup"]
         subset = 'referred'
-        dataset_group_gradient = group_gradients[dataset][subset].item()
+        dataset_group_gradient = group_gradients[dataset_only][subset].item()
+    elif dataset == "calm non-referred":
+        timepoints = ['baseline']
+        dataset_only = "calm"
+        subset = "non-referred"
+        dataset_group_gradient = group_gradients[dataset_only][subset].item()
     else:
         timepoints = ["bas1", "flu1", "flu2"]
         dataset_group_gradient = group_gradients[dataset]
         subset = []
+        dataset_only = "nki"
     # Loop across time points
     for timepoint_idx, timepoint in enumerate(timepoints):
         mdic_list = []
         # Specify the file name to which we'll save the DME outputs
         if subset:
-            save_filename = 'data/' + dataset + '/dme/' + subset + '_' + parcellation + '_' + timepoint + '.mat'
+            save_filename = 'data/' + dataset_only + '/dme/' + subset + '_' + parcellation + '_' + timepoint + '.mat'
         else:
             save_filename = 'data/' + dataset + '/dme/' + parcellation + '_' + timepoint + '.mat'
         # Now loop across modalities
@@ -401,7 +502,7 @@ for dataset_idx, dataset in enumerate(datasets):
             # affect results.
             individual_eigenvectors, variance_explained, participants, affinity = \
                 run_individual_diffusion_map_embedding(
-                    dataset=dataset, modality=modality, parcellation=parcellation, ncomp=3, timepoint=timepoint,
+                    dataset=dataset_only, modality=modality, parcellation=parcellation, ncomp=3, timepoint=timepoint,
                     subset=subset, return_affinity=True)
             # For each participant's node, calculate the euclidean distance with the group manifold origin i.e. the
             # manifold eccentricity
