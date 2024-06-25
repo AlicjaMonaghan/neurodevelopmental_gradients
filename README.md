@@ -11,7 +11,7 @@ This work is licensed under a
 # Neurodevelopmental Gradients
 Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structural and Functional Manifolds'. We focus on two data sets of children and adolescents. The first is the Centre for Attention, Learning, and Memory (CALM), aged 6 to 17 years old, referred to the service as having problems with one or more of these cognitive domains, by teachers, special educational needs coordinators, and clinical practioners. The second is the Nathan Kline Institute (NKI) Rockland Sample Longitudinal Discovery of Brain Development Trajectories, aged 6 to 19 years old, and a community-ascertained sample from the US. Any questions should be forwarded to Alicja.Monaghan@mrc-cbu.cam.ac.uk.
 
-![alt text](https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/images/Upload%20DME%20Pipeline%20and%20Explanatory%20Schematic.png) 
+![alt text](https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/images/Developmental%20effects%20on%20structure-function%20coupling%20April%202024.png)
 
 ## Code 
 * [Deriving group and individual level gradients][code1] - This describes conducting diffusion-map embedding (DME) to derive group-level and individual-level structural and functional gradients for CALM and NKI. Since both CALM and NKI are managed-access datasets, we cannot provide raw connectomes.
