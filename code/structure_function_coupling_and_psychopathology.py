@@ -13,6 +13,7 @@ from factor_analyzer import FactorAnalyzer
 import h5py
 from scipy.spatial.distance import cdist
 from scipy.stats import mannwhitneyu
+
 os.chdir('/home/am10/gradients_open_access/')
 
 
@@ -107,7 +108,8 @@ def run_structure_function_euclidean(dataset, parcellation, return_within_modali
 # participant onto each component.
 def principal_component_analysis(domain, ncomp):
     # Load the data sheet with cognitive and psychopathology measures across cohorts.
-    cognitive_psychopathology_data_sheet = pd.read_csv('data/phenotypic/nki.calm.combined.cognitive.conners.csv')
+    cognitive_psychopathology_data_sheet = pd.read_csv(
+        'data/phenotypic/updated.nki.calm.combined.cognitive.conners.csv')
     # We will always include the following columns
     id_columns = ['id', 'age_in_months', 'timepoint', 'dataset']
     # 'domain' takes one of two options: cognitive or psychopathology.
@@ -196,15 +198,63 @@ for dataset in datasets:
     # Additionally, save the within-manifold euclidean distances for NKI
     if dataset is 'nki':
         for timepoint_idx, timepoint in enumerate(timepoints):
-            hf = h5py.File('data/' + dataset + '/structure.function/within.manifold.euclidean.distance.'
+            hf = h5py.File(os.getcwd() + '/data/' + dataset + '/structure.function/within.manifold.euclidean.distance.'
                            + timepoint + '.h5', 'w')
             hf.create_dataset('within.manifold.euclidean.distances', data=within_manifold_euclid[timepoint_idx])
             hf.close()
 
-# PART 2 - Examining Dimensions of Cognition and Psychopathology #
+# PART 2 - Updating Meta-Data Sheet #
+domains = ['cognitive', 'psychopathology']
+# Load the NKI and CALM psychopathology and cognitive data
+nki_calm_psych_cog = pd.read_csv('data/phenotypic/nki.calm.combined.cognitive.conners.csv', index_col=False).iloc[:, 1:]
+# Find the number of CALM participants we have
+calm_nsub = nki_calm_psych_cog['dataset'].value_counts()['calm']
+# We need to replace the ages for CALM with the correct ages. Load up the master sheet with the correct ages.
+calm_func_master = pd.read_excel('/imaging/projects/external/nkir/analyses/Alicja_calm_functional_master.xlsx')
+# Convert scan age to age in months
+calm_func_master['updated_age_in_months'] = calm_func_master['scan_age'] * 12
+# Recode time point from numbers to character labels
+calm_func_master['timepoint'] = np.where(calm_func_master['timepoint'] == 0, 'baseline', 'followup')
+# Replace ID with id...
+calm_func_master = calm_func_master.rename(columns={'ID': 'id'})
+# Add a dataset column
+calm_func_master['dataset'] = 'calm'
+# Convert id and timepoint to objects, for easier merging...
+calm_func_master = calm_func_master.astype({'id': 'object', 'timepoint': 'object', 'dataset': 'object'})
+# Subset by the columns we want
+calm_func_master = calm_func_master.loc[:, ['id', 'timepoint', 'updated_age_in_months', 'scan_age']]
+calm_func_master['id'] = calm_func_master['id'].astype(str)
+calm_func_master['timepoint'] = calm_func_master['timepoint'].astype(str)
+# Subset the NKI and CALM psychopathology and cognitive data by CALM
+calm_psych_cog = nki_calm_psych_cog[nki_calm_psych_cog['dataset'] == 'calm']
+# Reset the index
+calm_psych_cog.reset_index(drop=True, inplace=True)
+# Merge with the correct age data!
+calm_psych_cog = calm_psych_cog.merge(calm_func_master, on=['id', 'timepoint'], how='left')
+# Remove old age_in_months column
+calm_psych_cog.drop(columns='age_in_months', inplace=True)
+# And rename updated_age_in_months to age_in_months, in line with the original data sheet
+calm_psych_cog.rename(columns={'updated_age_in_months': 'age_in_months'}, inplace=True)
+# Extract measures of psychopathology and cognition for NKI
+nki_psych_cog = nki_calm_psych_cog[nki_calm_psych_cog['dataset'] == 'nki']
+# We have structure-function coupling values for 346 data points, but 347 values for psychopathology and cognition.
+# Load the SF-coupling data frame, and find the participant psychopathology and cognition data that we need to remove.
+coupling_data_df = pd.read_csv('data/structure.function/coupling.data.df.csv')
+nki_coupling_data_df = coupling_data_df[coupling_data_df['dataset'] == 'nki']
+participant_to_remove = pd.concat(
+    [nki_coupling_data_df.loc[:, ['id', 'dataset', 'timepoint']],
+     nki_psych_cog.loc[:, ['id', 'timepoint', 'dataset']]]).drop_duplicates(keep=False)
+# Remove this participant from nki_psych_cog. Note that we only index ID because this participant has one time point.
+idx_to_remove = nki_psych_cog[nki_psych_cog['id'] == participant_to_remove[['id']].values[0].item()].index[0]
+nki_psych_cog.drop(index=idx_to_remove, inplace=True)
+# Now merge with the CALM cognitive and psychopathology variables
+updated_psych_cog = pd.concat([nki_psych_cog, calm_psych_cog], ignore_index=True)
+# And save...
+updated_psych_cog.to_csv('data/phenotypic/updated.nki.calm.combined.cognitive.conners.csv')
+
+# PART 3 -  Examining Dimensions of Cognition and Psychopathology #
 # We use principal component analysis to extract dimensions of cognition using 6 scales common across NKI and CALM, and
 # dimensions of psychopathology using 6 Conners scales.
-domains = ['cognitive', 'psychopathology']
 for domain in domains:
     # The function below produces two outputs: one data frame showing the loadings of each measure onto each component,
     # and a second data frame showing the loadings of each participant onto each component.
