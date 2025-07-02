@@ -15,7 +15,7 @@ library(mgcv)
 library(data.table)
 reticulate::use_miniconda('r-reticulate')
 reticulate::py_run_string("import sys")
-setwd('U:/gradients_open_access')
+# setwd('U:/gradients_open_access')
 Sys.setenv(`_R_USE_PIPEBIND_` = TRUE)
 
 # This function fits GAMMs with subject-specific intercepts as random effects. 
@@ -42,6 +42,8 @@ fit.gamm.with.random.effects = function(df, parametric, smooth, outcome, interac
   gamm4_formula = as.formula(sprintf("%s ~ s(%s, k=%f, fx=%s) + %s + s(%s, by=%s, k=%f, fx=%s)",
                                      outcome,smooth,knots,fx,paste(parametric,collapse=" + "),interaction[1],interaction[2],knots,fx))
   # Fit the GAMM and extract summary
+  #gamm_output = gamm4(formula=gamm4_formula, random = ~(1|id), data = df,
+                      #control = lmeControl(opt = "optim", msMaxIter = 200, msVerbose = TRUE))
   gamm_output = gamm4(formula=gamm4_formula, random = ~(1|id), data = df)
   gamm_summary = summary(gamm_output$gam)
   # Initialize an output array for test statistics. We collect estimates and t

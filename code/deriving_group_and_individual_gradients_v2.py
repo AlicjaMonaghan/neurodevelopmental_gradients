@@ -16,7 +16,7 @@ from brainspace.gradient.alignment import procrustes
 from scipy.io import loadmat
 import mat73
 
-os.chdir('/home/am10/gradients_open_access/')
+# os.chdir('/home/am10/gradients_open_access/')
 
 
 # PART 2 - Specify functions!
