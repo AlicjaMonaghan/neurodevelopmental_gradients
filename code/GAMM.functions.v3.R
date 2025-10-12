@@ -13,8 +13,8 @@ library(parallel)
 library(gamm4)
 library(mgcv)
 library(data.table)
-reticulate::use_miniconda('r-reticulate')
-reticulate::py_run_string("import sys")
+# reticulate::use_miniconda('r-reticulate')
+# reticulate::py_run_string("import sys")
 # setwd('U:/gradients_open_access')
 Sys.setenv(`_R_USE_PIPEBIND_` = TRUE)
 
@@ -44,6 +44,7 @@ fit.gamm.with.random.effects = function(df, parametric, smooth, outcome, interac
   # Fit the GAMM and extract summary
   #gamm_output = gamm4(formula=gamm4_formula, random = ~(1|id), data = df,
                       #control = lmeControl(opt = "optim", msMaxIter = 200, msVerbose = TRUE))
+  # gamm_output = gamm4(formula=gamm4_formula, random = ~(1|id), data = df)
   gamm_output = gamm4(formula=gamm4_formula, random = ~(1|id), data = df)
   gamm_summary = summary(gamm_output$gam)
   # Initialize an output array for test statistics. We collect estimates and t
@@ -120,7 +121,7 @@ fit.gamm.tensor.interaction.with.random.effects = function(df, tensor.interactio
       interaction = tensor.interaction[[interaction_idx]]
       # Note that we include a main effect tensor for the variable which is not
       # unique to each interaction e.g. for two age x Factor interactions, 
-      # specify the Fcator main effect and the whole interaction.
+      # specify the Factor main effect and the whole interaction.
       interaction_list[[interaction_idx]] = 
         sprintf('ti(%s, k=%f, fx=%s) + ti(%s, %s, k=%f, fx=%s)',
                 interaction[[2]], knots, fx, interaction[[1]], interaction[[2]], knots, fx)
@@ -138,8 +139,8 @@ fit.gamm.tensor.interaction.with.random.effects = function(df, tensor.interactio
   # the MGCV package, not the gamm4 package.
   gamm.formula = as.formula(sprintf('%s ~ %s + %s', outcome, interaction.specification, parametric.specification)) 
   # Fit the GAMM and extract summary. 
-  gamm_output = gamm(formula=gamm.formula, random = list(id=~1), data = df, 
-                     control = lmeControl(msMaxIter = 1000, msMaxEval = 1000, sing.tol=1e-20))
+  gamm_output = gamm(formula=gamm.formula, random = list(id=~1), data = df, method = "REML",
+                    control = lmeControl(msMaxIter = 1000, msMaxEval = 1000))
   gamm_summary = summary(gamm_output$gam)
   # Create an output array of test statistics for the parametric and smooth/
   # tensor terms. 
@@ -330,7 +331,9 @@ calculate.yeo.7.network.manifold.eccentricity = function(df){
   return(metadata_with_eccentricity)
 }
 # This function plots the partial age effects on manifold eccentricity, at a 
-# global or intrinsic connectivity network (ICN) level. 
+# global or intrinsic connectivity network (ICN) level. On Thursday 28th August
+# 2025, we added an output which tells us the Spearman rank correlation
+# coefficient between predicted and observed manifold eccentricity!
 plot.manifold.eccentricity.partial.age.effect = function(model,modality,alpha){
   # Extract the outcome variable
   outcome_var = names(model$gam$model[1])
@@ -342,9 +345,13 @@ plot.manifold.eccentricity.partial.age.effect = function(model,modality,alpha){
   pred.with.gaussian.ci = 
     gaussian.simultaneous.confidence.intervals(
       model = model, seed = 100, num_sim = 1000, probability = .95, 
-      num_age_breaks = 200, control_continuous = "meanfwd", interaction.with.dataset = TRUE)
+      control_continuous = "meanfwd", interaction.with.dataset = TRUE)
   # Add a dummy outcome variable
   pred.with.gaussian.ci[[outcome_var]] = 1
+  # Correlate the predicted manifold eccentricity (fit) with the empirical!
+  prediction_corr = cor.test(pred.with.gaussian.ci$fit, df[[outcome_var]])
+  print(sprintf('%s prediction correlation coefficient of %.3f and p-value of %.3f',
+                outcome_var, prediction_corr$estimate, prediction_corr$p.value))
   # To compare the normalized age effect on manifold eccentricity between data
   # sets, we need to create a common scale, and thus visualize the interaction
   # between age and cohort minus the main cohort effect. For each data set, 
@@ -821,6 +828,8 @@ plot.continuous.tensor.interaction.with.age = function(gamm_model, grouping_var,
     names(cond) = c("scan_age", updated_terms)
     # Now generate new predicted data using these conditions/constants
     pred_data = get_predictions(model = split_gamm$gam, cond = cond, rm.ranef = FALSE, se = TRUE, f = 1.96)
+    # Add the IDs from data_subset
+    pred_data$id = data_subset$id
     # Add a dummy outcome variable
     pred_data[[outcome]] = 1
     # And assign to output list...

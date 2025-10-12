@@ -6,10 +6,10 @@
 # including derived meta-data such as head motion. 
 ### PART 1 - Setting up the Work Space ####
 rm(list = ls())
-library(raveio)
+library(R.matlab)
 library(dplyr)
 library(readxl)
-setwd('U:/gradients_open_access')
+setwd('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients')
 # Specify key DME variables
 modalities = c("structural","functional")
 datasets = c("calm","nki")
@@ -17,7 +17,7 @@ calm_timepoints = c("baseline","followup")
 nnode = 200
 ncomp = 3
 # And load the region labels for Schaefer 200-node 7-network atlas.
-schaefer200x7_metadata = read_mat("data/schaefer200x7_1mm_info.mat")
+schaefer200x7_metadata = readMat("data/schaefer200x7_1mm_info.mat")
 schaefer200x7_labels = unlist(schaefer200x7_metadata[["schaefer200x7.1mm.info"]][[1]])
 nroi = length(schaefer200x7_labels)
 # And set the labels for Yeo's (2011) resting-state functional connectivity networks
@@ -25,11 +25,11 @@ yeo_7_networks = c("Vis","SomMot","DorsAttn","SalVentAttn","Limbic","Cont","Defa
 ### PART 2 - Formatting CALM Meta-Data with DME Outputs ####
 # Load the DME outputs (eccentricities, variance explained etc.) for each time
 # point, and for our main analysis parcellation (Schaefer 200-node 7-network).
-calm_baseline_dme = read_mat('data/calm/dme/referred_schaefer200x7_baseline.mat')
-calm_followup_dme = read_mat('data/calm/dme/referred_schaefer200x7_followup.mat')
+calm_baseline_dme = readMat('data/calm/dme/referred_schaefer200x7_baseline.mat')
+calm_followup_dme = readMat('data/calm/dme/referred_schaefer200x7_followup.mat')
 # Get the CALM meta-data
-calm_metadata_sc = read_xlsx('//cbsu/data/imaging/projects/external/nkir/analyses/Alicja_calm_structural_master.xlsx')
-calm_metadata_fc = read_xlsx('//cbsu/data/imaging/projects/external/nkir/analyses/Alicja_calm_functional_master.xlsx')
+calm_metadata_sc = read_xlsx('data/calm/Alicja_calm_sc_master.xlsx')
+calm_metadata_fc = read_xlsx('data/calm/Alicja_calm_fc_master.xlsx')
 for (modality_idx in 1:length(modalities)){
   modality = modalities[modality_idx]
   # Get the appropriate meta-data
@@ -93,14 +93,14 @@ names(calm_dme_and_metadata_structural)[names(calm_dme_and_metadata_structural)=
 names(calm_dme_and_metadata_functional)[names(calm_dme_and_metadata_functional)=="meanFWD"] <- "meanfwd"
 ### PART 3 - Load NKI Meta-Data ####
 # Load DME outputs for each time point
-nki_bas1_dme = read_mat('data/nki/dme/schaefer200x7_bas1.mat')
-nki_flu1_dme = read_mat('data/nki/dme/schaefer200x7_flu1.mat')
-nki_flu2_dme = read_mat('data/nki/dme/schaefer200x7_flu2.mat')
+nki_bas1_dme = readMat('data/nki/dme/schaefer200x7_bas1.mat')
+nki_flu1_dme = readMat('data/nki/dme/schaefer200x7_flu1.mat')
+nki_flu2_dme = readMat('data/nki/dme/schaefer200x7_flu2.mat')
 # Load motion estimates (mean frame-wise displacement/FWD). For each session, 
 # create a new data frame with subject, session, and mean FWD for SC and FC.
 # motion_estimates_v2 was created by concatenating FWD data from NKI connectomes
 # on 26th March 2024 from thresholded_structural_and_functional_connectomes.mat
-nki_motion_estimates = read_mat('data/nki/motion_estimates_v2.mat')[['fd.metadata']][[1]]
+nki_motion_estimates = readMat('data/nki/motion_estimates_v2.mat')[['fd.metadata']][[1]]
 nki_ses_names = c("bas1","flu1","flu2")
 # For each modality, create a new data frame with id, session, and mean FWD.
 for (modality_idx in 1:length(modalities)){
@@ -135,7 +135,7 @@ for (modality_idx in 1:length(modalities)){
 # Load the participants data sheet (minimal meta-data). For data privacy 
 # reasons, we cannot provide this as open-access.
 nkir_neuroimaging_participants = 
-  read_excel("//cbsu/data/imaging/projects/external/nkir/data/enhanced_nkir/data-2023-04-09T22_13_49.162Z.xlsx",na = c(".", "MD"))
+  read_excel("data/phenotypic/data-2023-04-09T22_13_49.162Z.xlsx",na = c(".", "MD"))
 # Retain ID, session, age, and gender from the neuro-imaging data sheet
 nkir_neuroimaging_participants = nkir_neuroimaging_participants %>%
   dplyr::select(c("id","session","dem_002","age_04")) %>%

@@ -9,12 +9,12 @@ library(colorRamp2)
 library(circlize)
 library(cowplot)
 # Add the GAMM functions and set the working directory
-setwd('U:/gradients_open_access/')
+setwd('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients/')
 source('code/GAMM.functions.v3.R')
 # Import the loadings of each cognitive/psychopathological measure onto each 
 # component derived from principal components analysis.
-psychopathology.participant.loadings = read.csv('data/phenotypic/psychopathology.participant.loadings.csv')
-cognition.participant.loadings = read.csv('data/phenotypic/cognitive.participant.loadings.csv')
+new.psychopathology.participant.loadings = read.csv('data/phenotypic/psychopathology.participant.loadings.august25.csv')
+new.cognition.participant.loadings = read.csv('data/phenotypic/cognitive.participant.loadings.august25.csv')
 # And import the equivalent for individual measures
 psychopathology.measure.loadings = read.csv('data/phenotypic/psychopathology.measure.loadings.csv')
 cognition.measure.loadings = read.csv('data/phenotypic/cognitive.measure.loadings.csv')
@@ -27,7 +27,7 @@ names(structure.function.coupling.df)[names(structure.function.coupling.df) == '
 # Concatenate the two participant loading data frames and create a new variable
 # which indexes where each data frame came from
 cognition.psychopathology.participant.loadings = 
-  bind_rows(psychopathology.participant.loadings, cognition.participant.loadings, .id = "domain") %>%
+  bind_rows(new.psychopathology.participant.loadings, new.cognition.participant.loadings, .id = "domain") %>%
   mutate(domain = factor(domain, labels = c("psychopathology", "cognition"))) %>%
   mutate(dataset = factor(dataset)) %>%
   select(!age_in_months) 
@@ -114,9 +114,9 @@ outcome_array = c("Global", "Vis", "SomMot", "DorsAttn", "SalVentAttn", "Limbic"
 cognition_coupling_gamm_output_list = vector("list",length(outcome_array))
 psychopathology_coupling_gamm_output_list = vector("list",length(outcome_array))
 for (domain in domains){
-  domain.df = get(paste0(domain,".participant.loadings"))
+  domain.df = get(paste0("new.", domain,".participant.loadings"))
   # Merge with the structure-function coupling data frame!
-  domain.structure.function.df = merge(structure.function.coupling.df, domain.df, by = c("dataset", "id", "timepoint"), all.x = TRUE)
+  domain.structure.function.df = merge(structure.function.coupling.df, domain.df, by = c("dataset", "id", "timepoint"))
   # Find the number of factors
   factors = colnames(domain.df)[which(grepl("Factor", colnames(domain.df)))]
   nfactors = length(factors)
@@ -172,28 +172,33 @@ for (domain in domains){
     summary_table$X3 = pval_array[,outcome_idx,2]
     # Format the table nicely
     colnames(summary_table) = c("Estimate/EDF", "t/F", "FDR-corrected p-value")
-    write.csv(summary_table, file = sprintf("data/coupling.phenotypic/%s.%s.coupling.gamm.csv", outcome_array[outcome_idx], domain))
+    write.csv(summary_table, file = sprintf("data/coupling.phenotypic/updated.%s.%s.coupling.gamm.csv", outcome_array[outcome_idx], domain))
   }
 }
-saveRDS(cognition_coupling_gamm_output_list, file = "data/coupling.phenotypic/cognition.coupling.gamm.output.list.RData")
-saveRDS(psychopathology_coupling_gamm_output_list, file = "data/coupling.phenotypic/psychopathology.coupling.gamm.output.list.RData")
+saveRDS(cognition_coupling_gamm_output_list, file = "data/coupling.phenotypic/august25.cognition.coupling.gamm.output.list.RData")
+saveRDS(psychopathology_coupling_gamm_output_list, file = "data/coupling.phenotypic/august25.psychopathology.coupling.gamm.output.list.RData")
 
 ### PART 5 - Visualizing Age * Factor Interaction when Predicting Cognition ####
 # Our results show a significant interaction between age and cognitive factor 2
-# when predicting coupling within the default-mode, dorsal attention, global, 
-# and somato-motor networks. Therefore, for these networks, we shall split the
+# when predicting coupling within global, somato-motor, dorsal attention, visual,
+# and default-mode networks. Therefore, for these networks, we shall split the
 # participants according to cognitive factor, conduct a GAMM within each sub-
-# group, and visualise age effects. 
-cognition_coupling_gamm_output_list = readRDS("data/coupling.phenotypic/cognition.coupling.gamm.output.list.RData")
-idx_to_plot = c(1, 3, 4, 8)
-decomposed_interaction_effect_list = vector("list", length(idx_to_plot))
-for (idx in idx_to_plot){
+# group, and visualize age effects. 
+cognition_coupling_gamm_output_list = readRDS("data/coupling.phenotypic/august25.cognition.coupling.gamm.output.list.RData")
+idx_to_plot = c(1, 2, 3, 4, 8)
+decomposed_interaction_effect_list = vector("list", 8)
+for (idx in 1:8){
   interaction.plot = plot.continuous.tensor.interaction.with.age(
     gamm_model = cognition_coupling_gamm_output_list[[idx]],
     grouping_var = "Factor2", decompose_developmental_effects = TRUE)
   # Assign to output list and save individual plot...
   decomposed_interaction_effect_list[[idx]] = interaction.plot
-  ggsave(filename = sprintf('data/coupling.phenotypic/decomposed.age.interaction.cognition.%s.png', outcome_array[idx]),
+  ggsave(filename = sprintf('data/coupling.phenotypic/august25.decomposed.age.interaction.cognition.%s.png', outcome_array[idx]),
          plot = interaction.plot, height = 10, width = 10, dpi = 700)
+  # Save the interaction plot data for default-mode coupling, so that we can 
+  # update the plotting!
+  if (idx == 8){
+    write.csv(interaction.plot$data, file = "data/structure.function/GAMM_fit_DMN.csv")
+  }
   rm(interaction.plot)
 }

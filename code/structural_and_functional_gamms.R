@@ -7,14 +7,14 @@
 
 ### PART 1 - Setting up the Work Space ####
 rm(list = ls())
-library(raveio)
+library(R.matlab)
 library(gamm4)
 library(ggplot2)
 library(cowplot)
 reticulate::py_run_string("import sys")
-setwd('U:/gradients_open_access')
+setwd('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients/')
 # Add the custom GAMM function code.
-source('code/GAMM.functions.R')
+source('code/GAMM.functions.v3.R')
 # Specify key DME variables
 modalities = c("structural","functional")
 datasets = c("calm","nki")
@@ -22,7 +22,7 @@ calm_timepoints = c("baseline","followup")
 nnode = 200
 ncomp = 3
 # And load the region labels for Schaefer 200-node 7-network atlas.
-schaefer200x7_metadata = read_mat("data/schaefer200x7_1mm_info.mat")
+schaefer200x7_metadata = readMat("data/schaefer200x7_1mm_info.mat")
 schaefer200x7_labels = unlist(schaefer200x7_metadata[["schaefer200x7.1mm.info"]][[1]])
 nroi = length(schaefer200x7_labels)
 # And set the labels for Yeo's (2011) resting-state functional connectivity networks
@@ -39,6 +39,20 @@ nki_dme_and_metadata_functional =
   read.csv("data/nki/dme/dme.and.metadata.functional.connectivity.csv")[,-1]
 
 ### PART 2 - Assessing Age Effects on Global and Network-Level Structural and Functional Manifold Eccentricity ####
+# Start by calculating network-level manifold eccentricity for the referred 
+# CALM cohort. We need this to compare with eccentricity from the neurotypical
+# portion as a sensitivity analysis to parse developmental and dataset effects.
+referred_calm_network_sc_eccentricity_df = 
+  calculate.yeo.7.network.manifold.eccentricity(calm_dme_and_metadata_structural)[1:7]
+referred_calm_network_sc_eccentricity_df['global'] = rowMeans(referred_calm_network_sc_eccentricity_df)
+write.csv(referred_calm_network_sc_eccentricity_df, 'data/calm/dme/referred_calm_network_sc_eccentricity_df.csv')
+
+referred_calm_network_fc_eccentricity_df = 
+  calculate.yeo.7.network.manifold.eccentricity(calm_dme_and_metadata_functional)[1:7]
+referred_calm_network_fc_eccentricity_df['global'] = rowMeans(referred_calm_network_fc_eccentricity_df)
+write.csv(referred_calm_network_fc_eccentricity_df, 'data/calm/dme/referred_calm_network_fc_eccentricity_df.csv')
+
+# Now continue with the network-level eccentricity GAMM modelling!
 ICN_modality_gamm_list = vector("list", 2)
 for (modality_idx in 1:length(modalities)){
   # Initialize a list to hold the global and network-level plots
@@ -171,7 +185,7 @@ for (modality_idx in 1:length(modalities)){
     print(parametric_coefs)
     # Now find the smooths!
     smooth_coefs = summary_table[(length(parametric) + 1): nrow(summary_table), ]
-    # Replace the interaction p-value from the GAMM with the boostrapped version
+    # Replace the interaction p-value from the GAMM with the bootstrapped version
     smooth_coefs[nrow(smooth_coefs), ncol(smooth_coefs)] = adjusted_interaction_pval[idx]
     # Replace the smooth p-value from the GAMM with the FDR-corrected p-value
     smooth_coefs[nrow(smooth_coefs)-1, ncol(smooth_coefs)] = manifold_eccentricity_pval[length(all_predictors)-2,idx,2]

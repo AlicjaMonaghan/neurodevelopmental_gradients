@@ -1,6 +1,6 @@
 ### PART 1 - Set up the Work Space ####
 rm(list = ls())
-library(raveio)
+library(R.matlab)
 library(dplyr)
 library(ggplot2)
 library(stringr)
@@ -10,7 +10,9 @@ library(cowplot)
 library(ggseg)
 library(ggsegSchaefer)
 library(paletteer)
-setwd('U:/gradients_open_access')
+library(exploratory)
+library(rockchalk)
+setwd('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients/')
 # Add the custom GAMM function code.
 reticulate::py_run_string("import sys")
 source('code/GAMM.functions.v3.R')
@@ -441,7 +443,7 @@ for (analysis_level in levels_of_analysis){
 ### PART 7 - Structure-Function Coupling visualised on Surface ####
 # Plot the average structure-function coupling across the brain and across groups!
 # Load the region labels for Schaefer 200-node 7-network atlas.
-schaefer200x7_metadata = read_mat("data/schaefer200x7_1mm_info.mat")
+schaefer200x7_metadata = readMat("data/schaefer200x7_1mm_info.mat")
 schaefer200x7_labels = unlist(schaefer200x7_metadata[["schaefer200x7.1mm.info"]][[1]])
 nroi = length(schaefer200x7_labels)
 # First, calculate the mean across all regions...
@@ -496,11 +498,20 @@ for (region_idx in 1:5){
                 region_idx, cv_dataframe_sorted$region[201 - region_idx], 
                 cv_dataframe_sorted$cv[201 - region_idx]))
 }
+# Calculate the Fisher coefficient of skewness for the coefficient of variation
+# and the kurtosis (summary of a distribution's shape using the Normal
+# distribution as a comparison). A Normal distribution will have a Fisher
+# skewness coefficient of 0 and a kurtosis coefficient of 3.
+cv_skew = exploratory::skewness(abs(cv_dataframe$cv))
+cv_kurtosis = kurtosis(abs(cv_dataframe$cv))
+# Find the relative difference in structure-function coupling variability
+diff_magnitude = max(abs(cv_dataframe$cv)) / min(abs(cv_dataframe$cv))
+
 # Now plot on the cortical surface!
 coefficient.of.variation.coupling.cortical.distribution = 
   ggseg(.data = cv_dataframe_sorted, atlas = schaefer7_200, mapping = aes(fill = rank), 
       position = c("stacked"), hemisphere = c("right")) +
-  theme_void() + scale_fill_paletteer_c("pals::ocean.matter", direction=1) +
+  theme_void() + scale_fill_paletteer_c("pals::ocean.matter", direction=-1) +
   theme(legend.position = "bottom", legend.direction = "horizontal", 
         legend.key.width = unit(2.5, "cm"), legend.key.height = unit(1, "cm"),
         legend.title = element_blank()) +

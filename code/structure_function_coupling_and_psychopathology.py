@@ -1,5 +1,7 @@
 # This python script calculates structure-function coupling for CALM and NKI. This is the Spearman correlation between
-# the Euclidean distance of each node relative to all others in structural and functional manifold space.
+# the Euclidean distance of each node relative to all others in structural and functional manifold space. Updated in
+# July-August 2025 by Alicja Monaghan, MRC Cognition and Brain Sciences Unit.
+
 from scipy.stats import spearmanr, shapiro, pearsonr
 import pandas as pd
 import os
@@ -7,14 +9,17 @@ import numpy as np
 from scipy.io import loadmat
 import glob
 import re
-from sklearn.impute import KNNImputer
 import statsmodels.formula.api as smf
 from factor_analyzer import FactorAnalyzer
 import h5py
 from scipy.spatial.distance import cdist
-from scipy.stats import mannwhitneyu
+from scipy.stats import mannwhitneyu, kstest, ttest_ind
+from pingouin import compute_effsize
+from sklearn.impute import KNNImputer
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import root_mean_squared_error
 
-os.chdir('/home/am10/gradients_open_access/')
+os.chdir('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients')
 
 
 # This function calculates structure-function coupling for the user-specified data set, as a spearman-rank correlation
@@ -109,7 +114,7 @@ def run_structure_function_euclidean(dataset, parcellation, return_within_modali
 def principal_component_analysis(domain, ncomp):
     # Load the data sheet with cognitive and psychopathology measures across cohorts.
     cognitive_psychopathology_data_sheet = pd.read_csv(
-        'data/phenotypic/updated.nki.calm.combined.cognitive.conners.csv')
+        'data/phenotypic/august25.updated.nki.calm.combined.cognitive.conners.csv')
     # We will always include the following columns
     id_columns = ['id', 'age_in_months', 'timepoint', 'dataset']
     # 'domain' takes one of two options: cognitive or psychopathology.
@@ -121,13 +126,15 @@ def principal_component_analysis(domain, ncomp):
                            'conners_learning_problems_t', 'conners_executive_function_t', 'conners_aggression_t']
     # Set the number of data points we have and initialise the imputer
     num_data_points = cognitive_psychopathology_data_sheet.shape[0]
-    imputer = KNNImputer()
+    pipeline = Pipeline([('scaler', StandardScaler()),('knn_imputer', KNNImputer(n_neighbors=5))])
     # Loop through each measure, and calculate the percentage of missing data. If there is missing data, impute using
     # k-nearest neighbours.
     for measure in measure_columns:
         x = cognitive_psychopathology_data_sheet[measure].values.reshape(num_data_points, 1)
         print("%.2f percent of %s data is missing." % (round((np.isnan(x).sum() / num_data_points) * 100, 2), measure))
-        cognitive_psychopathology_data_sheet[measure] = imputer.fit_transform(x)
+        cognitive_psychopathology_data_sheet[measure] = pipeline.fit_transform(x)
+    # Save the imputed datasets!
+    cognitive_psychopathology_data_sheet.to_csv('data/phenotypic/calm_nki_imputed_' + domain + '.csv', index=False)
     # If we're processing cognitive data, we need to derive age-standardised scores by regressing out age.
     if domain is 'cognitive':
         age = cognitive_psychopathology_data_sheet['age_in_months'].values.reshape(num_data_points, 1)
@@ -171,8 +178,9 @@ def principal_component_analysis(domain, ncomp):
     # of each participant onto each factor.
     return loadings, individual_loadings_pd
 
-
+########################################################
 # PART 1 - Structure-Function Relationships #
+########################################################
 # For each data set and participant, calculate the Euclidean distance for each node in relation to others within the
 # same manifold, and then the distance between these measures in the structural and functional manifolds.
 datasets = ['calm', 'nki']
@@ -203,16 +211,18 @@ for dataset in datasets:
             hf.create_dataset('within.manifold.euclidean.distances', data=within_manifold_euclid[timepoint_idx])
             hf.close()
 
+########################################################
 # PART 2 - Updating Meta-Data Sheet #
+########################################################
 domains = ['cognitive', 'psychopathology']
 # Load the NKI and CALM psychopathology and cognitive data
 nki_calm_psych_cog = pd.read_csv('data/phenotypic/nki.calm.combined.cognitive.conners.csv', index_col=False).iloc[:, 1:]
 # Find the number of CALM participants we have
 calm_nsub = nki_calm_psych_cog['dataset'].value_counts()['calm']
 # We need to replace the ages for CALM with the correct ages. Load up the master sheet with the correct ages.
-calm_func_master = pd.read_excel('/imaging/projects/external/nkir/analyses/Alicja_calm_functional_master.xlsx')
+calm_func_master = pd.read_excel('data/calm/Alicja_calm_fc_master.xlsx')
 # Convert scan age to age in months
-calm_func_master['updated_age_in_months'] = calm_func_master['scan_age'] * 12
+# calm_func_master['updated_age_in_months'] = calm_func_master['scan_age'] * 12
 # Recode time point from numbers to character labels
 calm_func_master['timepoint'] = np.where(calm_func_master['timepoint'] == 0, 'baseline', 'followup')
 # Replace ID with id...
@@ -222,7 +232,7 @@ calm_func_master['dataset'] = 'calm'
 # Convert id and timepoint to objects, for easier merging...
 calm_func_master = calm_func_master.astype({'id': 'object', 'timepoint': 'object', 'dataset': 'object'})
 # Subset by the columns we want
-calm_func_master = calm_func_master.loc[:, ['id', 'timepoint', 'updated_age_in_months', 'scan_age']]
+calm_func_master = calm_func_master.loc[:, ['id', 'timepoint', 'Age_at_test(years)', 'scan_age']]
 calm_func_master['id'] = calm_func_master['id'].astype(str)
 calm_func_master['timepoint'] = calm_func_master['timepoint'].astype(str)
 # Subset the NKI and CALM psychopathology and cognitive data by CALM
@@ -232,13 +242,14 @@ calm_psych_cog.reset_index(drop=True, inplace=True)
 # Merge with the correct age data!
 calm_psych_cog = calm_psych_cog.merge(calm_func_master, on=['id', 'timepoint'], how='left')
 # Remove old age_in_months column
-calm_psych_cog.drop(columns='age_in_months', inplace=True)
+# calm_psych_cog.drop(columns='age_in_months', inplace=True)
 # And rename updated_age_in_months to age_in_months, in line with the original data sheet
 calm_psych_cog.rename(columns={'updated_age_in_months': 'age_in_months'}, inplace=True)
 # Extract measures of psychopathology and cognition for NKI
 nki_psych_cog = nki_calm_psych_cog[nki_calm_psych_cog['dataset'] == 'nki']
 # We have structure-function coupling values for 346 data points, but 347 values for psychopathology and cognition.
-# Load the SF-coupling data frame, and find the participant psychopathology and cognition data that we need to remove.
+# Load the SF-coupling data frame, and find the participant psychopathology and cognition data that we need to remove:
+# this is sub-A00037126 BAS1 scan from NKI.
 coupling_data_df = pd.read_csv('data/structure.function/coupling.data.df.csv')
 nki_coupling_data_df = coupling_data_df[coupling_data_df['dataset'] == 'nki']
 participant_to_remove = pd.concat(
@@ -247,12 +258,27 @@ participant_to_remove = pd.concat(
 # Remove this participant from nki_psych_cog. Note that we only index ID because this participant has one time point.
 idx_to_remove = nki_psych_cog[nki_psych_cog['id'] == participant_to_remove[['id']].values[0].item()].index[0]
 nki_psych_cog.drop(index=idx_to_remove, inplace=True)
+# Load the FC DME meta-data sheet, as we need to correct the ages for NKI - at the moment, the age_in_months is
+# equivalent to the real age in years rounded down!
+nki_fc_dme = pd.read_csv('data/nki/dme/dme.and.metadata.functional.connectivity.csv').rename(
+    columns={'bids': 'id', 'session': 'timepoint'})
+nki_fc_dme['age_in_months'] = nki_fc_dme['scan_age'] * 12
+nki_fc_dme['dataset'] = 'nki'
+# Merge the two data frames together!
+nki_psych_cog_merged = nki_psych_cog.merge(nki_fc_dme[['id', 'timepoint', 'age_in_months', 'dataset']],
+                                           on=['id', 'timepoint'], how='left', suffixes=('', '_new'))
+# Drop the helper/merge columns!
+nki_psych_cog_merged.drop(columns=['age_in_months', 'dataset_new'], inplace=True)
+# Re-name age_in_months_new as age_in_months, to match the CALM dataset
+nki_psych_cog_merged.rename(columns={'age_in_months_new': 'age_in_months'}, inplace=True)
 # Now merge with the CALM cognitive and psychopathology variables
-updated_psych_cog = pd.concat([nki_psych_cog, calm_psych_cog], ignore_index=True)
+updated_psych_cog = pd.concat([nki_psych_cog_merged, calm_psych_cog], ignore_index=True)
 # And save...
-updated_psych_cog.to_csv('data/phenotypic/updated.nki.calm.combined.cognitive.conners.csv')
+updated_psych_cog.to_csv('data/phenotypic/august25.updated.nki.calm.combined.cognitive.conners.csv')
 
-# PART 3 -  Examining Dimensions of Cognition and Psychopathology #
+########################################################
+# PART 3 - Dimensions of Cognition and Psychopathology
+########################################################
 # We use principal component analysis to extract dimensions of cognition using 6 scales common across NKI and CALM, and
 # dimensions of psychopathology using 6 Conners scales.
 for domain in domains:
@@ -264,8 +290,8 @@ for domain in domains:
         ncomp = 3
     measure_loadings, participant_loadings = principal_component_analysis(domain=domain, ncomp=ncomp)
     # Save each of these data frames...
-    measure_loadings.to_csv('data/phenotypic/' + domain + '.measure.loadings.csv')
-    participant_loadings.to_csv('data/phenotypic/' + domain + '.participant.loadings.csv', index=False)
+    measure_loadings.to_csv('data/phenotypic/' + domain + '.measure.loadings.august25.csv')
+    participant_loadings.to_csv('data/phenotypic/' + domain + '.participant.loadings.august25.csv', index=False)
 # For each domain, conduct a Mann-Whitney U test to test the null hypothesis that the mean participant loadings for each
 # data set are equal.
 for domain in domains:
@@ -277,3 +303,56 @@ for domain in domains:
         statistic, pval = mannwhitneyu(x=df[df['dataset'] == 'calm'][factor], y=df[df['dataset'] == 'nki'][factor])
         print('Testing for difference in %s %s loadings: Mann-Whitney U statistic of %.3f, p-value of %.3f.' %
               (domain, factor, round(statistic, 3), round(pval, 3)))
+
+########################################################
+# PART 4 - Assessing impact of missingness
+########################################################
+# Assess whether the distribution of continuous participant characteristics, such as age, and head motion, for
+# participants with and without imputed data. We will follow this tutorial:
+# https://medium.com/analytics-vidhya/effectiveness-of-knn-imputation-part-i-the-iris-dataset-e784f157275a
+cognitive_psychopathology_data_sheet = pd.read_csv(
+        'data/phenotypic/august25.updated.nki.calm.combined.cognitive.conners.csv')
+# Add a column to indicate whether the participant has any missing cognitive or psychopathology data.
+cognitive_psychopathology_data_sheet['missing_data'] = (
+    cognitive_psychopathology_data_sheet.loc[:,'awma_digit_recall_raw': 'conners_peer_relations_t'].isnull().any(axis=1))
+n_missing = cognitive_psychopathology_data_sheet.missing_data.sum()
+print(f'{n_missing} participants have one or missing cognitive or psychopathology measures, equal to '
+      f'{np.round((n_missing/cognitive_psychopathology_data_sheet.shape[0])*100, 2)} percent.')
+# Load the structure-function coupling data frame which has the head motion estimates, and merge
+coupling_df = pd.read_csv('data/structure.function/coupling.data.df.csv')
+cognitive_psychopathology_df = cognitive_psychopathology_data_sheet.merge(coupling_df, on=['timepoint', 'dataset', 'id'])
+missing_data_participants = cognitive_psychopathology_df[cognitive_psychopathology_df['missing_data'] == True]
+no_missing_data_participants = cognitive_psychopathology_df[cognitive_psychopathology_df['missing_data'] == False]
+# We will assess whether participants with missing data have specific age or head motion characteristics
+missingness_age_ttest = ttest_ind(no_missing_data_participants.scan_age_y, missing_data_participants.scan_age_y, equal_var=False)
+missingness_age_effect = compute_effsize(no_missing_data_participants.scan_age_y, missing_data_participants.scan_age_y)
+# We will now assess the effectiveness of the KNN-imputation using root mean squared error.
+cognitive_psychopathology_subset = cognitive_psychopathology_data_sheet.iloc[:, 3:15]
+# Find how many values are missing of the total nsubject x nmeasure, where 27.50% of rows have missing data
+num_val = cognitive_psychopathology_subset.shape[0] * cognitive_psychopathology_subset.shape[1]
+percent_nan = (cognitive_psychopathology_subset.isna().sum().sum()/num_val)*100
+print(f'{np.round(percent_nan, 3)} percent of the values are missing!')
+# Set seed for reproducibility
+np.random.seed(123)
+# Select rows in cognitive_psychopathology_subset with no missing values
+no_missing_subset = cognitive_psychopathology_subset.dropna(axis=0, how='any')
+# Create a copy of this into which we will add missing values at random
+missing_subset = no_missing_subset.copy()
+# Since around 7% of the data is missing, we shall introduce around 10% missing (with replacement)
+for feature in cognitive_psychopathology_subset.columns:
+    missing_subset.loc[no_missing_subset.sample(frac=0.1, replace=True).index, feature] = np.nan
+# Impute the missing data with uniform weights and 5 neighbours
+impute = KNNImputer()
+missing_subset_knn = impute.fit_transform(missing_subset)
+# For each psychopathological and cognitive measure, calculate the normalized root mean square error and express this
+# as a percentage of the observable range.
+column_wise_rmse = np.zeros((len(cognitive_psychopathology_subset.columns)))
+for feature_idx in range(len(cognitive_psychopathology_subset.columns)):
+    feature_data_complete = no_missing_subset.iloc[:, feature_idx]
+    feature_range = feature_data_complete.max() - feature_data_complete.min()
+    rmse = (root_mean_squared_error(feature_data_complete, missing_subset_knn[:, feature_idx])/feature_range)*100
+    column_wise_rmse[feature_idx] = rmse
+# Create into a data frame and save!
+RMSE_accuracy = pd.DataFrame(data=column_wise_rmse, index=cognitive_psychopathology_subset.columns, columns=['RMSE'])
+RMSE_accuracy.to_csv('data/phenotypic/psychopathology_cognition_imputation_accuracy.csv')
+

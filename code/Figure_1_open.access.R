@@ -1,7 +1,7 @@
 ### PART 1 - Set up the work space ####
 rm(list = ls())
 library(plotly)
-library(raveio)
+library(R.matlab)
 library(cowplot)
 library(reshape2)
 library(ggseg3d)
@@ -9,16 +9,16 @@ library(ggsegSchaefer)
 library(dplyr)
 library(ggplot2)
 library(reticulate)
-setwd('U:/gradients_open_access')
+setwd('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients/')
 # Add the custom GAMM function code.
-source('code/GAMM.functions.R')
+source('code/GAMM.functions.v3.R')
 modalities = c("structural","functional")
 datasets = c("calm","nki")
 calm_timepoints = c("baseline","followup")
 nnode = 200
 ncomp = 3
 # And load the region labels for Schaefer 200-node 7-network atlas.
-schaefer200x7_metadata = read_mat("data/schaefer200x7_1mm_info.mat")
+schaefer200x7_metadata = readMat("data/schaefer200x7_1mm_info.mat")
 schaefer200x7_labels = unlist(schaefer200x7_metadata[["schaefer200x7.1mm.info"]][[1]])
 nroi = length(schaefer200x7_labels)
 # Load the group-level DME outputs and meta-data!
@@ -31,9 +31,9 @@ nki_dme_and_metadata_structural =
 nki_dme_and_metadata_functional = 
   read.csv("data/nki/dme/dme.and.metadata.functional.connectivity.csv")
 # And the individual-level outputs...
-nki_bas1_dme = read_mat('data/nki/dme/schaefer200x7_bas1.mat')
-nki_flu1_dme = read_mat('data/nki/dme/schaefer200x7_flu1.mat')
-nki_flu2_dme = read_mat('data/nki/dme/schaefer200x7_flu2.mat')
+nki_bas1_dme = readMat('data/nki/dme/schaefer200x7_bas1.mat')
+nki_flu1_dme = readMat('data/nki/dme/schaefer200x7_flu1.mat')
+nki_flu2_dme = readMat('data/nki/dme/schaefer200x7_flu2.mat')
 nki_ses_names = c("bas1","flu1","flu2")
 
 ### PART 2 - ICN and parcellation schematics ####
@@ -129,8 +129,8 @@ for (modality_idx in 1:length(modalities)){
           axis.title = element_text(size = 20)) +
     scale_colour_manual(values = c("calm" = "#440154FF", "nki" = "#1F968BFF")) +
     scale_fill_manual(values = c("calm" = "#440154FF", "nki" = "#1F968BFF"))
-  ggsave(filename = paste0('visualisation/group.gradients/',modality,'.gradients.box.plot.png'),
-         plot = variance_explained_boxplot, width = 5, height = 5, dpi = 700)
+  #ggsave(filename = paste0('visualisation/group.gradients/',modality,'.gradients.box.plot.png'),
+         #plot = variance_explained_boxplot, width = 5, height = 5, dpi = 700)
   # Assign to output list
   variability_boxplot_list[[modality_idx]] = variance_explained_boxplot
 }

@@ -1,20 +1,21 @@
 % this script checks for scanner effects in CALM data (centre for
 % attention, learning, and memory). written by alicja monaghan,
-% alicja.monaghan@mrc-cbu.cam.ac.uk, 20/03/2024
+% alicja.monaghan@mrc-cbu.cam.ac.uk, 20/03/2024, and updated with new paths
+% on 10/10/2025
 
 %% part 1 - setting up work space %%
 clear;clc;
 % set working directory
-cd('//cbsu/data/imaging/projects/external/nkir/analyses/');
+cd('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients/');
 % add path to brain connectivity toolbox (Rubinov and Sporns, 2010)
-addpath('/imaging/astle/am10/toolboxes/2019_03_03_BCT/'); 
+addpath('2019_03_03_BCT/'); 
 % load the harmonised and thresholded connectomes and metadata
-thresholded_connectomes = load('/imaging/projects/external/nkir/analyses/duncan_thresholded_structural_and_functional_connectomes.mat');
+thresholded_connectomes = load('data/calm/connectomes/duncan_thresholded_structural_and_functional_connectomes.mat');
 thresholded_connectomes = thresholded_connectomes.thresholded;
-metadata = load('/imaging/projects/external/nkir/analyses/duncan_meta.mat');
+metadata = load('data/calm/connectomes/duncan_meta.mat');
 metadata = metadata.Meta;
 % and the group-level consensus networks
-consensus = load('/imaging/projects/external/nkir/analyses/consensus.mat');
+consensus = load('data/calm/connectomes/consensus.mat');
 % set parameters
 modalities = {'sc', 'fc'};
 harmonised_status_cell = {'harmonised', 'unharmonised'};
@@ -51,7 +52,7 @@ for modality_idx = 1:length(modalities)
         graph_theory_metrics_all_modalities{modality_idx, harmonisation_idx} = graph_theory_metrics; 
     end
 end
-save('harmonisation_graph_theory_metrics.mat', 'graph_theory_metrics_all_modalities');
+save('data/calm/connectomes/harmonisation_graph_theory_metrics.mat', 'graph_theory_metrics_all_modalities');
 %% part 3 - conduct general linear models to assess harmonisation %%
 % load graph theory metrics
 graph_theory_metrics_all_modalities = load('harmonisation_graph_theory_metrics.mat');
@@ -89,7 +90,7 @@ thresholded.sc.harmonised = struct();
 % initialise empty array for baseline individuals
 thresholded.sc.harmonised.baseline.referred.schaefer200x7.individual = zeros(size(thresholded_connectomes.sc.harmonised.baseline.schaefer200x7.individual));
 % and create communicability matrices
-addpath('U:/gradients_open_access/code');
+% addpath('U:/gradients_open_access/code');
 for connectome_idx = 1:length(thresholded.sc.harmonised.baseline.referred.schaefer200x7.individual)
     a = squeeze(thresholded_connectomes.sc.harmonised.baseline.schaefer200x7.individual(connectome_idx, :, :));
     thresholded.sc.harmonised.baseline.referred.schaefer200x7.individual(connectome_idx, :, :) = communicability(a);

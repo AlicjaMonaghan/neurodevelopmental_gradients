@@ -1,12 +1,12 @@
 ### PART 1 - Setting up the Work Space ####
 rm(list = ls())
-library(raveio)
+library(R.matlab)
 library(plotly)
 library(viridis)
 library(scales)
 library(dplyr)
 library(reshape2)
-setwd('U:/gradients_open_access/')
+setwd('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients/')
 # Specify key DME variables
 modalities = c("structural","functional")
 datasets = c("calm","nki")
@@ -14,7 +14,7 @@ calm_timepoints = c("baseline","followup")
 nnode = 200
 ncomp = 3
 # And load the region labels for Schaefer 200-node 7-network atlas.
-schaefer200x7_metadata = read_mat("data/schaefer200x7_1mm_info.mat")
+schaefer200x7_metadata = readMat("data/schaefer200x7_1mm_info.mat")
 schaefer200x7_labels = unlist(schaefer200x7_metadata[["schaefer200x7.1mm.info"]][[1]])
 nroi = length(schaefer200x7_labels)
 # And set the labels for Yeo's (2011) resting-state functional connectivity networks
@@ -22,9 +22,13 @@ yeo_7_networks = c("Vis","SomMot","DorsAttn","SalVentAttn","Limbic","Cont","Defa
 # Load the group-level and individual-level DME outputs for each data set and
 # modality...
 calm_dme_and_metadata_structural = 
-  read.csv("data/calm/dme/dme.and.metadata.structural.connectivity.csv")[,-1]
+  read.csv("data/calm/dme/dme.and.metadata.structural.connectivity.csv")[,-1] %>%
+  # Subset by the baseline session so we can make more valid comparisons with 
+  # the age-matched controls!
+  subset(timepoint == "baseline")
 calm_dme_and_metadata_functional = 
-  read.csv("data/calm/dme/dme.and.metadata.functional.connectivity.csv")[,-1]
+  read.csv("data/calm/dme/dme.and.metadata.functional.connectivity.csv")[,-1] %>%
+  subset(timepoint == "baseline")
 nki_dme_and_metadata_structural = 
   read.csv("data/nki/dme/dme.and.metadata.structural.connectivity.csv")[,-1]
 nki_dme_and_metadata_functional = 
@@ -33,7 +37,7 @@ nki_dme_and_metadata_functional =
 ### PART 2 - Manifold Eccentricity 3D Schematic ####
 # Load the group gradients for NKI, and then the structural eccentricity for the
 # first participant in NKI (sub-A00018030), and structural gradients
-nki_group_gradients = read_mat("data/calm.nki.group.gradients.mat")[["nki"]]
+nki_group_gradients = readMat("data/calm.nki.group.gradients.mat")[["nki"]]
 # Find the group-level manifold origin, by calculating the intersection of the 
 # first 3 gradients for each hemisphere, and then the mean of that. Format into
 # a data frame.

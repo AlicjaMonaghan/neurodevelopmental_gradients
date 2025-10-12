@@ -16,7 +16,7 @@ from brainspace.gradient.alignment import procrustes
 from scipy.io import loadmat
 import mat73
 
-# os.chdir('/home/am10/gradients_open_access/')
+os.chdir('/Users/alicjamonaghan/Desktop/neurodevelopmental_gradients')
 
 
 # PART 2 - Specify functions!
@@ -129,8 +129,7 @@ def run_group_dimensionality_reduction(dataset, modality, parcellation, ncomp, u
     # Now find which regions anchor the gradients! Start by loading the parcellation meta-data
     if parcellation is 'schaefer100x7' or 'schaefer200x7':
         parcellation_metadata = scipy.io.loadmat(
-            '/imaging/astle/users/da04/PhD/qsiprep_data/data/' + parcellation + '_1mm_info.mat',
-            simplify_cells=True)[parcellation + '_1mm_info']['name']
+            'data/' + parcellation + '_1mm_info.mat', simplify_cells=True)[parcellation + '_1mm_info']['name']
     else:
         parcellation_metadata = scipy.io.loadmat(
             '/imaging/astle/users/da04/PhD/qsiprep_data/data/' + parcellation + '_info.mat',
@@ -526,3 +525,5 @@ for dataset_idx, dataset in enumerate(datasets):
             del individual_eigenvectors, manifold_eccentricity, mdic_modality, variance_explained, affinity
         # After processing both modalities, concatenate the two dictionaries, and save as a MATLAB file
         savemat(save_filename, mdict={**mdic_list[0], **mdic_list[1]})
+
+
