@@ -7,11 +7,10 @@ os.chdir('/home/am10/gradients_open_access/')
 # Load the DME results for both modalities
 calm_dme_metadata_sc = pd.read_csv('data/calm/dme/dme.and.metadata.structural.connectivity.csv')
 calm_dme_metadata_fc = pd.read_csv('data/calm/dme/dme.and.metadata.functional.connectivity.csv')
-# Merge...
-
-
+calm_struc_master = pd.read_xlsx('data/calm/Alicja_calm_sc_master.xlsx')
+calm_func_master = pd.read_xlsx('data/calm/Alicja_calm_fc_master.xlsx')
 # Subset by the columns we want!
-calm_columns_to_subset = ['BIDS', 'scan_age', 'Sex'. 'timepoint']
+calm_columns_to_subset = ['BIDS', 'scan_age', 'Sex', 'timepoint']
 # Concatenate
 calm_metadata_concat = pd.merge(calm_struc_master, calm_func_master, how='inner', on=['BIDS', 'timepoint', 'Sex', 'scan_age'])
 # Load the meta- and DME-data for structural and functional connectivity in NKI
