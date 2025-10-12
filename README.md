@@ -11,7 +11,7 @@ This work is licensed under a
 # Neurodevelopmental Gradients
 Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structural and Functional Manifolds'. We focus on two data sets of children and adolescents. The first is the Centre for Attention, Learning, and Memory (CALM), aged 6 to 17 years old, referred to the service as having problems with one or more of these cognitive domains, by teachers, special educational needs coordinators, and clinical practioners. The second is the Nathan Kline Institute (NKI) Rockland Sample Longitudinal Discovery of Brain Development Trajectories, aged 6 to 19 years old, and a community-ascertained sample from the US. Any questions should be forwarded to Alicja.Monaghan@mrc-cbu.cam.ac.uk.
 
-![alt text](https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/images/Developmental%20effects%20on%20structure-function%20coupling%20April%202024.png)
+![alt text](https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/images/DME%20Pipeline%20and%20Explanatory%20Schematic%20-%20Updated%20September%202025%20(2).png)
 
 ## Code 
 * [Deriving group and individual level gradients][code1] - This describes conducting diffusion-map embedding (DME) to derive group-level and individual-level structural and functional gradients for CALM and NKI. Since both CALM and NKI are managed-access datasets, we cannot provide raw connectomes.
@@ -39,11 +39,9 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 
 ## Individual and group-level gradients
 * [Group-level gradients for CALM and NKI][code12] - Structural gradients are communicability values from thresholded streamline counts from probabilistic tractography, whilst functional gradients are pairwise correlated time-series from resting-state functional magnetic resonance imaging.
-* [Coefficient of variation][code13] - Nodal coefficient of variation for gradients, averaged across participants, acccording to dataset (1 = CALM, 2 = NKI) and modality (1 = structural, 2 = functional).
 * Note, whilst DME-derived gradients are provided for all datasets, the individual affinity matrices with the eigenvectors were too large to upload. 
 
 [code12]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/data/calm.nki.group.gradients.mat
-[code13]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/data/coefficient.of.variation.csv
 
 ## Phenotypic
 * [Participant-level and measure-level loadings][code14] from a principal component analysis of 6 broad cognitive (working memory, attention, exeuctive functioning etc) and 6 psychopathological (Conners III) measures.
