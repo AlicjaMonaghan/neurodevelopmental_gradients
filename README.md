@@ -58,6 +58,7 @@ Internal scripts used to clean rsfMRI data and construct functional connectomes,
 [code8c]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/neurotypical.coupling.development.R
 [code8d]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/structure_function_coupling_sensitivity.py
 [code9]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/structure_function_coupling_individual_differences.R
+[code10]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/developmental_effects_on_structure_function_relationships.R
 [code11]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/NKI_and_CALM_cognitive_behavioural_V3.py
 [code12]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/psychopathology_cognition_dimensions_structure_function.R
 [code12a]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/gamm_coupling_crossvalidation.R
