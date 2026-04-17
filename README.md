@@ -14,7 +14,7 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 ![alt text](https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/Figure1.png)
 
 # `requirements`
-* [Brain Connectivity Toolbox][BCTref] - 2019 MATLAB version, developed by [Rubinov and Sporns (2010)[RSref]. Used to calculate graph theory metrics throughout, particularly in Figure 2.
+* [Brain Connectivity Toolbox][BCTref] - 2019 MATLAB version, developed by [Rubinov and Sporns (2010)][RSref]. Used to calculate graph theory metrics throughout, particularly in Figure 2.
 * [BrainSpace][BSref] - MATLAB toolbox for gradient analysis, developed by [Vos de Wael and colleagues (2020)][VWref].
 * [mgcv][mgcvRef] - R toolbox used for generalised additive mixed models, developed by Simon Wood.
 
