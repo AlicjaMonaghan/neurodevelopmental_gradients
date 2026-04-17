@@ -19,7 +19,7 @@ Internal scripts used to clean rsfMRI data and construct functional connectomes,
 # `code` 
 * [Summary statistics][code0] - Summary statistics for cross-sectional and longitudinal portions of CALM and NKI.
 * [Cognitive and psychopathology data for CALM and NKI][code11] - Pulls age-standardised scores spanning cognitive and psychopathology in preparation for PCA.
-* [Communicability function][code1a] - Weighted communicability function, used to derive structural gradients, based on a formulation by Estrada and Hatano (2008) and adapted by Crofts and Higham (2009).
+* [Communicability function][code1a] - Weighted communicability function, used to derive structural gradients, based on a formulation [Crofts and Higham (2009)][CHref].
 * [Deriving group and individual level gradients][code1] - This describes conducting diffusion-map embedding (DME) to derive group-level and individual-level structural and functional gradients for CALM and NKI. Since both CALM and NKI are managed-access datasets, we cannot provide raw connectomes.
 * [Collecting DME outputs][code2] - This pulls DME output from the above code, and formats it with co-variates required for statistical modelling. The formatted outputs are already provided for the user.
 * [Figure 1][code3] - Code for plotting group-level DME eigenvectors on the cortical surface, exploring variability in the percentage variance accounted for by the first structural and functional components, and examining individual differences in variance explained.
@@ -40,6 +40,7 @@ Internal scripts used to clean rsfMRI data and construct functional connectomes,
 
 [code0]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/nkir_calm_descriptives_v2.R
 [code1a]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/communicability.m
+[CHref]: https://royalsocietypublishing.org/rsif/article-abstract/6/33/411/65459/A-weighted-communicability-measure-applied-to?redirectedFrom=fulltext
 [code1]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/deriving_group_and_individual_gradients_v2.py
 [code2]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/dme_and_metadata.R
 [code3]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/Figure_1_open.access.R
