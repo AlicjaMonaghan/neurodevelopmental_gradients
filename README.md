@@ -29,7 +29,7 @@ Internal scripts used to clean rsfMRI data and construct functional connectomes,
 * [Dominance function][code4a] - Dominance analysis MATLAB function written by [Shiyong Yu][shiyongdominance], used for analysis in Figure 2. 
 * [Dominance analysis of manifold eccentricity][code4b] - Relating manifold eccentricity with graph theory measures in a dominance analysis (Figure 2c)
 * [Generalised additive mixed models (GAMM)][code5] - Contains all GAMM functions, including handling factor-smooth interactions, obtaining GAMM predictions for plotting, and plotting partial age effects on manifolds.
-* [Structural and functional GAMMs][code8] - GAMMs to assess developmental effects on structural and functional manifold eccentricity, adjusting for covariates.
+* [Structural and functional GAMMs][code8] - GAMMs to assess developmental effects on structural and functional manifold eccentricity, adjusting for covariates (Figure 3).
 * [Computing structure-function coupling and deriving dimensions of psychopathology and cognition][code9] - Updates the CALM and NKI meta-data sheets with correct ages, then computes structure-function coupling and behavioural dimensions. Also assesses impact of missingness. 
 * [Developmental effects of structure-function coupling][code8b] - Analyses and visualisation for panels a, b, c, and e of Figure 4.
 * [Individual differences in and developmental trajectories of structure-function coupling][code10] - Conducts GAMMs to test developmental effects on structure-function coupling. Visualises individual differences in structure-function coupling as a function of data set and network.
