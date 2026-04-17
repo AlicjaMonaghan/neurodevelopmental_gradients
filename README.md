@@ -17,12 +17,15 @@ Data and code supporting 'Canonical Neurodevelopmental Trajectories of Structura
 * [Brain Connectivity Toolbox][BCTref] - 2019 MATLAB version, developed by [Rubinov and Sporns (2010)][RSref]. 
 * [BrainSpace][BSref] - MATLAB toolbox for gradient analysis, developed by [Vos de Wael and colleagues (2020)][VWref].
 * [mgcv][mgcvRef] - R toolbox used for generalised additive mixed models, developed by Simon Wood.
+* [corrstats][csRef] - Python script for dependent and independent correlation significance testing, developed by [Philipp Singer][PSref].
 
 [BCTref]: https://sites.google.com/site/bctnet/
 [RSref]: https://www.sciencedirect.com/science/article/abs/pii/S105381190901074X?via%3Dihub
 [BSref]: https://brainspace.readthedocs.io/en/latest/
 [VWref]: https://www.nature.com/articles/s42003-020-0794-7
 [mgcvRef]: https://cran.r-project.org/web/packages/mgcv/index.html
+[csRef]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/corrstats.py
+[PSref]: https://github.com/psinger/CorrelationStats?tab=readme-ov-file
 
 # `connectome construction`
 Internal scripts used to clean rsfMRI data and construct functional connectomes, as well as calculating communicability for structural connectomes. Included here for reference. Also includes a MATLAB script assessing the effects of COMBAT harmonisation on CALM data. 
