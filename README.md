@@ -39,7 +39,6 @@ Internal scripts used to clean rsfMRI data and construct functional connectomes,
 * [Figure 1][code3] - Code for plotting group-level DME eigenvectors on the cortical surface, exploring variability in the percentage variance accounted for by the first structural and functional components, and examining individual differences in variance explained.
 * [Spatial permutation test of brain maps][code3a] - Function to generate a p-value for the spatial correlation between parcellated cortical surface maps, developed by [Frantisek Vasa][FVref]. Used in Figure 1 to compare gradients across cohorts, and used in Figure 4 to relate structure-function coupling with the sensorimotor-association axis.
 * [Gradient developmental stability][code3b] - Conducts all the sensitivity analyses in the final segment of Figure 1 (panels f-j), including effect of group vs individual-level analysis, mediating effect of motion on the relationship between age and alignment, alongside effects of Procrustes rotation.
-* [Figure 2][code4] - Plots the relationship between mean manifold eccentricity and global graph theory metrics.
 * [Dominance function][code4a] - Dominance analysis MATLAB function written by [Shiyong Yu][shiyongdominance], used for analysis in Figure 2. 
 * [Dominance analysis of manifold eccentricity][code4b] - Relating manifold eccentricity with graph theory measures in a dominance analysis (Figure 2c)
 * [Generalised additive mixed models (GAMM)][code5] - Contains all GAMM functions, including handling factor-smooth interactions, obtaining GAMM predictions for plotting, and plotting partial age effects on manifolds.
@@ -61,7 +60,6 @@ Internal scripts used to clean rsfMRI data and construct functional connectomes,
 [code3a]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/perm.sphere.p.R
 [FVref]: https://github.com/frantisekvasa/rotate_parcellation
 [code3b]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/gradient_developmental_sensitivity.py
-[code4]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/Figure_2_open.access.R
 [code4a]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/dominance.m
 [shiyongdominance]: https://uk.mathworks.com/matlabcentral/fileexchange/168806-dominance-analysis
 [code4b]: https://github.com/AlicjaMonaghan/neurodevelopmental_gradients/blob/main/code/eccentricity_graph_theory.m
